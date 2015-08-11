@@ -33,6 +33,10 @@ impl Value {
             core::LLVMConstStringInContext(context.into(), ptr, len, rust_style as c_int).into()
         }
     }
+    /// Create a new constant null value of the given type.
+    pub fn null<'a>(ty: &'a Type) -> &'a Value {
+        unsafe { core::LLVMConstNull(ty.into()).into() }
+    }
     /// Create a new constant undefined value of the given type.
     pub fn new_undef<'a>(ty: &'a Type) -> &'a Value {
         unsafe { core::LLVMGetUndef(ty.into()).into() }
