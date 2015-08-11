@@ -104,6 +104,16 @@ impl StructType {
             ty.into()
         })
     }
+    /// Creates a new named struct type without setting its elements.
+    pub fn new_holder<'a>(context: &'a Context, name: &str) -> &'a StructType {
+        util::with_cstr(name, |name| unsafe {
+            core::LLVMStructCreateNamed(context.into(), name).into()
+        })
+    }
+    /// Sets the elements of a previously created struct.
+    pub fn set_elements(&self, fields: &[&Type], packed:bool) {
+        unsafe { core::LLVMStructSetBody(self.into(), fields.as_ptr() as *mut LLVMTypeRef, fields.len() as c_uint, packed as c_int); }
+    }
     /// Returns the elements (AKA fields) that make up this struct.
     pub fn get_elements(&self) -> Vec<&Type> {
         unsafe {
