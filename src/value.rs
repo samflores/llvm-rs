@@ -1,6 +1,6 @@
 use libc::{c_char, c_uint, c_int};
 use ffi::prelude::LLVMValueRef;
-use ffi::{core, LLVMAttribute};
+use ffi::{core, LLVMAttribute, LLVMLinkage};
 use std::ffi::CString;
 use std::{fmt, mem, ptr};
 use std::ops::{Deref, Index};
@@ -41,7 +41,7 @@ impl Value {
     pub fn new_undef<'a>(ty: &'a Type) -> &'a Value {
         unsafe { core::LLVMGetUndef(ty.into()).into() }
     }
-    /// Returns the name of this value, or `None` if itlacks a name
+    /// Returns the name of this value, or `None` if it lacks a name
     pub fn get_name(&self) -> Option<&str> {
         unsafe {
             let c_name = core::LLVMGetValueName(self.into());
@@ -84,6 +84,47 @@ impl GlobalValue {
     pub fn is_constant(&self) -> bool {
         unsafe { core::LLVMIsGlobalConstant(self.into()) != 0 }
     }
+
+    /// Gets the linkage value for this global.
+    pub fn get_linkage(&self) -> Option<Linkage> {
+        unsafe {
+            match core::LLVMGetLinkage(self.into()) {
+                LLVMLinkage::LLVMExternalLinkage => Some(Linkage::External) ,
+                LLVMLinkage::LLVMAvailableExternallyLinkage => Some(Linkage::AvailableExternally) ,
+                LLVMLinkage::LLVMLinkOnceAnyLinkage => Some(Linkage::OnceAny) ,
+                LLVMLinkage::LLVMLinkOnceODRLinkage => Some(Linkage::OnceODR) ,
+                LLVMLinkage::LLVMWeakAnyLinkage => Some(Linkage::WeakAny) ,
+                LLVMLinkage::LLVMWeakODRLinkage => Some(Linkage::WeakODR) ,
+                LLVMLinkage::LLVMAppendingLinkage => Some(Linkage::Appending) ,
+                LLVMLinkage::LLVMInternalLinkage => Some(Linkage::Internal) ,
+                LLVMLinkage::LLVMPrivateLinkage => Some(Linkage::Private) ,
+                LLVMLinkage::LLVMExternalWeakLinkage => Some(Linkage::ExternalWeak) ,
+                LLVMLinkage::LLVMCommonLinkage => Some(Linkage::Common) ,
+                _ => None
+            }
+        }
+    }
+
+    /// Sets the linkage value for this global.
+    pub fn set_linkage(&self, link: Linkage) {
+        unsafe {
+            let link = match link {
+                Linkage::External => LLVMLinkage::LLVMExternalLinkage,
+                Linkage::AvailableExternally => LLVMLinkage::LLVMAvailableExternallyLinkage,
+                Linkage::OnceAny => LLVMLinkage::LLVMLinkOnceAnyLinkage,
+                Linkage::OnceODR => LLVMLinkage::LLVMLinkOnceODRLinkage,
+                Linkage::WeakAny => LLVMLinkage::LLVMWeakAnyLinkage,
+                Linkage::WeakODR => LLVMLinkage::LLVMWeakODRLinkage,
+                Linkage::Appending => LLVMLinkage::LLVMAppendingLinkage,
+                Linkage::Internal => LLVMLinkage::LLVMInternalLinkage,
+                Linkage::Private => LLVMLinkage::LLVMPrivateLinkage,
+                Linkage::ExternalWeak => LLVMLinkage::LLVMExternalWeakLinkage,
+                Linkage::Common => LLVMLinkage::LLVMCommonLinkage,
+            };
+            core::LLVMSetLinkage(self.into(), link);
+        }
+    }
+ }
 impl CastFrom for GlobalValue {
     type From = Value;
     fn cast<'a>(val: &'a Value) -> Option<&'a GlobalValue> {
@@ -94,6 +135,20 @@ impl CastFrom for GlobalValue {
             Some(gv.into())
         }
     }
+}
+
+pub enum Linkage {
+    External,
+    AvailableExternally,
+    OnceAny,
+    OnceODR,
+    WeakAny,
+    WeakODR,
+    Appending,
+    Internal,
+    Private,
+    ExternalWeak,
+    Common
 }
 
 /// A way of comparing values
@@ -328,4 +383,4 @@ impl GetContext for Value {
         self.get_type().get_context()
     }
 }
-to_str!(Value, LLVMPrintValueToString);
+

@@ -31,6 +31,6 @@ pub use module::{Module, Functions, AddressSpace};
 pub use object::{ObjectFile, Symbol, Symbols};
 pub use target::{TargetData, Target};
 pub use ty::{FunctionType, StructType, Type};
-pub use value::{Arg, Attribute, Value, Function, Predicate, GlobalValue};
+pub use value::{Arg, Attribute, Value, Function, Predicate, GlobalValue, Linkage};
 pub use util::CastFrom;
 pub use phi::PhiNode;
