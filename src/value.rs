@@ -74,7 +74,16 @@ impl GlobalValue {
     pub fn get_initializer(&self) -> &Value {
         unsafe { core::LLVMGetInitializer(self.into()) }.into()
     }
-}
+
+    /// Sets the constant flag for this global.
+    pub fn set_constant(&self, is_const: bool) {
+        unsafe { core::LLVMSetGlobalConstant(self.into(), is_const as c_int) }
+    }
+
+    /// Check if this global is a constant.
+    pub fn is_constant(&self) -> bool {
+        unsafe { core::LLVMIsGlobalConstant(self.into()) != 0 }
+    }
 impl CastFrom for GlobalValue {
     type From = Value;
     fn cast<'a>(val: &'a Value) -> Option<&'a GlobalValue> {
