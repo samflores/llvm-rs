@@ -6,7 +6,7 @@ use std::{fmt, mem, ptr};
 use std::ops::{Deref, Index};
 use block::BasicBlock;
 use context::{Context, GetContext};
-use ty::{FunctionType, Type};
+use ty::{FunctionType, StructType, Type};
 use util::{self, CastFrom};
 
 /// A typed value that can be used as an operand in instructions.
@@ -16,6 +16,10 @@ impl Value {
     /// Create a new constant struct from the values given.
     pub fn new_struct<'a>(context: &'a Context, vals: &[&'a Value], packed: bool) -> &'a Value {
         unsafe { core::LLVMConstStructInContext(context.into(), vals.as_ptr() as *mut LLVMValueRef, vals.len() as c_uint, packed as c_int) }.into()
+    }
+    /// Create a new constant struct from the given type and values.
+    pub fn new_typed_struct<'a>(ty: &'a StructType, vals: &[&'a Value]) -> &'a Value {
+        unsafe { core::LLVMConstNamedStruct(ty.into(), vals.as_ptr() as *mut LLVMValueRef, vals.len() as c_uint).into() }
     }
     /// Create a new constant vector from the values given.
     pub fn new_vector<'a>(vals: &[&'a Value]) -> &'a Value {
